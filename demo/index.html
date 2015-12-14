@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>speech-recognition Demo</title>
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="../../paper-styles/paper-styles.html">
+    <link rel="import" href="../../paper-material/paper-material.html">
+    <link rel="import" href="../../paper-styles/classes/global.html">
+    <link rel="import" href="../../iron-icons/iron-icons.html">
+    <link rel="import" href="../../paper-button/paper-button.html">
+    <link rel="import" href="../../paper-input/paper-input.html">
+    <link rel="import" href="../speech-recognition.html">
+  </head>
+  <body unresolved>
+    <template is="dom-bind" id="app">
+      <style is="custom-style">
+        body {
+          background-color: var(--light-primary-color);
+        }
+
+        paper-material {
+          background-color: var(--primary-background-color);
+          margin: 24px;
+          padding: 16px;
+        }
+        
+        .horizontal-section {
+          min-height: 100px;
+        }
+
+        .horizontal-section paper-input {
+          display: block;
+          width: 100%;
+        }
+      </style>
+      
+      <paper-material>
+        <h3>An example of <code>&lt;speech-recognition&gt;</code>:</h3>
+        <div class="horizontal-section horizontal layout">
+          <paper-button on-tap="_onStartRecog">Start</paper-button>
+          <paper-button on-tap="_onStopRecog">Stop</paper-button>
+          <paper-button on-tap="_onAbortRecog">Abort</paper-button>
+          <speech-recognition id="speechRecog" on-result="_spech_onResult" on-result-text-changed="_spech_onResultTextChanged" status="{{recogStatus}}" on-status-changed="_onRecogStatusChanged" suffix></speech-recognition>
+        </div>
+        <div class="horizontal-section horizontal layout">
+          <label for="recogInput">Status: <p>[[recogStatus]]</p></label> 
+          <paper-input id="recogInput">
+          </paper-input>
+        </div>
+      </paper-material>
+
+      <script>
+        
+        window.addEventListener('WebComponentsReady', function() {
+          
+          var app = document.querySelector('#app');
+          
+          app._onRecogStatusChanged = function (e) {
+            if (e.detail.value === 'starting') {
+              app.$.recogInput.value = '';
+            }
+          };
+          
+          app._onStartRecog = function () {
+            app.$.speechRecog.start();
+          };
+
+          app._onStopRecog = function () {
+            app.$.speechRecog.stop();
+          };
+          
+          app._onAbortRecog = function () {
+            app.$.speechRecog.abort();
+          };
+          
+          // app._spech_onResult = function (e) {
+          //   app.$.recogInput.value = e.detail.result;
+          //   app.$.speechRecog.stop();
+          // };
+          
+          app._spech_onResultTextChanged = function (e) {
+            //console.debug(e);
+            app.$.recogInput.value = e.detail.value;
+          };
+
+        });
+      </script>
+    </template>
+  </body>
+</html>

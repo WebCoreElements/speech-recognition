@@ -1,0 +1,177 @@
+<link rel="import" href="../polymer/polymer.html">
+<script>
+  var WebCoreElem = WebCoreElem || {};
+
+  WebCoreElem.SpeechRecognitionBehaviorImpl = {
+
+    properties: {
+      resultText: {
+        type: String,
+        value: '',
+        notify: true  
+      },
+
+      isListening: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        reflectToAttribute: true
+      },
+
+      status: {
+        type: String,
+        value: 'none',
+        notify: true,
+        observer: '_statusChanged'  
+      },
+      
+      continuous: {
+        type: Boolean,
+        value: true,
+        observer: '_continuousChanged'
+      },
+      
+      lang: {
+        type: String,
+        value: 'pt-BR',
+        observer: '_langChanged'
+      },
+      
+      interimResults: {
+        type: Boolean,
+        value: false,
+        observer: '_interimResultsChanged'
+      },
+      
+      maxAlternatives: {
+        type: Number,
+        value: 1,
+        observer: '_maxAlternativesChanged'
+      }      
+    },
+
+    
+    _statusChanged: function (newValue) {
+      this.isListening = ((newValue === 'listening') || (newValue === 'result_parsed')) ? true : false;
+    },
+
+    _continuousChanged: function(newValue) {
+      if (!this.recognition) { return; }
+        this.recognition.continuous = newValue;
+    },
+
+    _langChanged: function(newValue) {
+      if (!this.recognition) { return; }
+        this.recognition.lang = newValue;
+    },
+
+    _interimResultsChanged: function(newValue) {
+      if (!this.recognition) { return; }
+        this.recognition.interimResults = newValue;
+    },
+
+    _maxAlternativesChanged: function(newValue) {
+      if (!this.recognition) { return; }
+        this.recognition.maxAlternatives = newValue;
+    },
+
+    // Element Lifecycle
+    
+    created: function () {
+      var SpeechRecognitionApi = window.SpeechRecognition ||
+                              window.webkitSpeechRecognition ||
+                              window.mozSpeechRecognition ||
+                              window.msSpeechRecognition ||
+                              window.oSpeechRecognition;
+      if (SpeechRecognitionApi !== undefined) {
+        this.recognition = new SpeechRecognitionApi();
+      }
+    },
+
+    ready: function() {
+      if (!this.recognition) { return; }
+      this.recognition.lang = this.lang;
+      this.recognition.continuous = this.continuous;
+      this.recognition.interimResults = this.interimResults;
+      this.recognition.maxAlternatives = this.maxAlternatives;
+      
+      this._initializeEventListeners();
+    },
+
+    attached: function() {
+    },
+
+    detached: function() {
+      this.abort();
+    },
+
+    // Element Behavior
+    
+    _initializeEventListeners: function () {
+      // Initialize event listeners
+      var events = ['start', 'end', 'error'];
+      events.forEach(this._propagateEvent.bind(this));
+      this._bindResult();
+    },
+    
+    _propagateEvent: function (eventName) {
+      if (!this.recognition) { return; }
+      var that = this;
+      this.recognition.addEventListener(eventName, function(e) {
+        if (eventName === 'error') {
+          that._setStatus('error');
+        } else {
+          if (eventName === 'start') {
+            that._setStatus('listening');
+          } else if (eventName === 'end') {
+            that._setStatus('finished');
+          } 
+        }
+        that.fire(eventName, e);
+      });
+    },
+    
+    _bindResult: function() {
+      if (!this.recognition) { return; }
+      var that = this;
+      this.recognition.addEventListener('result', function(e) {
+        that._setStatus('parsing_result');
+        that.resultText = '';
+        for (var i = e.resultIndex; i < e.results.length; ++i) {
+          that.resultText += e.results[i][0].transcript;
+        }
+        e.result = that.resultText;
+        that._setStatus('result_parsed');
+        that.fire('result', e);
+      });
+    },
+    
+    _setStatus: function (statusValue) {
+      this.status = statusValue;
+    },
+        
+    start: function() {
+      if (!this.recognition) { return; }
+      this._setStatus('starting');
+      this.resultText = '';
+      this.recognition.start();
+    },
+    
+    stop: function() {
+      if (!this.recognition) { return; }
+      this._setStatus('stoping');
+      this.recognition.stop();
+    },
+    
+    abort: function() {
+      if (!this.recognition) { return; }
+      this._setStatus('aborting');
+      this.recognition.abort();
+      this._setStatus('aborted');
+    },
+  };
+  
+  WebCoreElem.SpeechRecognitionBehavior = [ 
+    WebCoreElem.SpeechRecognitionBehaviorImpl 
+  ];
+</script>

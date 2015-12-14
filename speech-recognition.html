@@ -1,0 +1,40 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="speech-recognition-behavior.html">
+
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <speech-recognition></speech-recognition>
+
+@group Seed Elements
+@element speech-recognition
+@demo demo/index.html
+@hero hero.svg
+-->
+<dom-module id="speech-recognition">
+
+<template>
+  <style>
+    :host {
+      display: none;
+    }
+  </style>
+</template>
+</dom-module>
+
+<script>
+
+  Polymer({
+
+    is: 'speech-recognition',
+
+    behaviors: [
+      WebCoreElem.SpeechRecognitionBehavior
+    ],
+    
+  });
+
+</script>
